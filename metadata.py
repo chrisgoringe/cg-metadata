@@ -56,14 +56,6 @@ class LoadImageWithMetadata(Base_metadata, LoadImage):
         add_dictionary_from_image(get_annotated_filepath(image))
         return LoadImage.load_image(image)
 
-class LoadMetadataFromImage(Base_metadata):
-    INPUT_TYPES = LoadImage.INPUT_TYPES
-    PRIORITY = 1
-    OUTPUT_NODE = True
-    def func(self, image):
-        add_dictionary_from_image(get_annotated_filepath(image))
-        return ()
-
 class SetMetadata(Base_metadata):
     OPTIONAL = { "key1": (LABELS, {}), "value1": ("*", {}), "key2": (LABELS, {}), "value2": ("*", {}), }
     PRIORITY = 1

@@ -4,7 +4,6 @@ from .metadata import *
 from .common import *
 
 NODE_CLASS_MAPPINGS = { "Metadata Controller" : Metadata,
-                        "Load Metadata From Image" : LoadMetadataFromImage, 
                         "Load Image and Metadata" : LoadImageWithMetadata,
                         "Set Metadata" : SetMetadata,
                         "Set Arbitrary Metadata" : SetArbitraryMetadata,
