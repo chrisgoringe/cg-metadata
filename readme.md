@@ -14,6 +14,7 @@ A set of custom nodes to add a custom metadata dictionary to images. The diction
 
 - `Metadata Controller` *optional* - used to determine whether the metadata dictionary is kept between runs (the default) or cleared, and whether duplicate entries replace (the default) or are appended. 
 - `Load Metadata From Image` - load the custom metadata from an existing image.
+- `Load Image with Metadata` - load the image and the custom metadata.
 - `Set Metadata` - set the value of one or two metadata entries. The drop down list contains a number of common keys, which can be configured in `configuration.yaml`.
 - `Set Arbitrary Metadata` - set the value of one metadata entry with an arbitrary key. Both Set... nodes take any input (but anything that can't be serialised isn't a good idea)
 - `Get Metadata`, `Get Arbitrary Metadata` - read the metadata (always as a string)

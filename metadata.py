@@ -40,19 +40,28 @@ class Metadata(Base_metadata):
         else:
             cls.dictionary[key] = value
 
+def add_dictionary_from_image(filepath):
+    try:
+        dict = json.loads(Image.open(filepath).text[MASTER_KEY])
+        for key in dict:
+            Metadata.set(key, dict[key])
+    except:
+        pass
+    
+class LoadImageWithMetadata(Base_metadata, LoadImage):
+    RETURN_TYPES = ("IMAGE", "MASK", )
+    RETURN_NAMES = ("image", "mask", )
+
+    def func(self, image):
+        add_dictionary_from_image(get_annotated_filepath(image))
+        return LoadImage.load_image(image)
+
 class LoadMetadataFromImage(Base_metadata):
     INPUT_TYPES = LoadImage.INPUT_TYPES
     PRIORITY = 1
     OUTPUT_NODE = True
     def func(self, image):
-        image_path = get_annotated_filepath(image)
-        i = Image.open(image_path)
-        try:
-            dict = json.loads(i.text[MASTER_KEY])
-        except:
-            dict = {}
-        for key in dict:
-            Metadata.set(key, dict[key])
+        add_dictionary_from_image(get_annotated_filepath(image))
         return ()
 
 class SetMetadata(Base_metadata):
