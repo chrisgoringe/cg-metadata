@@ -1,0 +1,11 @@
+# the key under which the metadata dictionary should be stored
+metadata_master_key:
+- cg
+
+# common labels for use within the dictionary (and their type - default is STRING)
+metadata_common_keys:
+- ckpt_name
+- prompt
+- negative
+- seed,INT
+- comment
