@@ -1,6 +1,6 @@
 import random
 from .common import Base_metadata
-from .metadata import Metadata
+from .metadata import Metadata, find_node
 
 # see text.js
 class ShowText(Base_metadata):
@@ -30,27 +30,28 @@ class SendText(Base_metadata):
     def IS_CHANGED(cls, **kwargs):
         return random.random()
 
-    @classmethod
-    def find_node_id(cls, extra_pnginfo, node_title):
-        for node in extra_pnginfo['workflow']['nodes']:
-            if node.get('title', node.get('type'))==node_title:
-                return node['id']
-        return None
-
     def func(self, target, text, extra_pnginfo, prompt):
         if not '.' in target:
             print("Target must be of the form node_title.widget_name")
             return ()
         node_title, widget_name = target.split('.')
-        node_id = self.find_node_id(extra_pnginfo, node_title) or -1
-        if node_id>=0:
-            input_or_widget = prompt[str(node_id)]['inputs'].get(widget_name,None)
+
+        if '#' in node_title:
+            node_title, skip_first_n_matches = node_title.split("#")
+            skip_first_n_matches = int(skip_first_n_matches) - 1
+        else:
+            skip_first_n_matches = 0
+
+        node = find_node(extra_pnginfo, node_title, skip_first_n_matches)
+        if node is not None:
+            node_id = str(node['id'])
+            input_or_widget = prompt[node_id]['inputs'].get(widget_name,None)
             if input_or_widget is not None and isinstance(input_or_widget,str):
-                prompt[str(node_id)]['inputs'][widget_name] = text
-                return {"ui": {"text": text, "node_id":str(node_id), "widget_name":widget_name}}
+                prompt[node_id]['inputs'][widget_name] = text
+                return {"ui": {"text": text, "node_id":node_id, "widget_name":widget_name}}
             else:
                 print(f"{widget_name} wasn't found on {node_title}. Here's a list of widget names:")
-                for name in prompt[str(node_id)]['inputs']:
+                for name in prompt[node_id]['inputs']:
                     print(name)
         else:
             print(f"{node_title} not found. Here's a list of node titles:")

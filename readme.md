@@ -20,6 +20,9 @@ Any key-value pair can be added to the custom dictionary, but the real power is 
 - `Load Image with Metadata` - load the image and its metadata. 
 - `Get Metadata` - read the metadata that has been stored or loaded. 
 - `Set/Get Metadata String` - set or get a custom key-value pair. 
+- `Send Text` - uses a text input to set the value of another node's widget
+- `Show Text` - display the text in the UI
+- `Show Metadata` - display the metadata (at the end of execution)
 
 ## Note on sequencing and triggers
 

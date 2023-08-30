@@ -6,7 +6,7 @@ import { ComfyWidgets } from "../../../scripts/widgets.js";
 app.registerExtension({
 	name: "cg.ShowText",
 	async beforeRegisterNodeDef(nodeType, nodeData, app) {
-		if (nodeData.name === "ShowText") {
+		if (nodeData.name === "Show Text" || nodeData.name === "Show Metadata") {
 			const onExecuted = nodeType.prototype.onExecuted;
 			nodeType.prototype.onExecuted = function (message) {
 				onExecuted?.apply(this, arguments);
@@ -37,7 +37,7 @@ app.registerExtension({
 app.registerExtension({
 	name: "cg.SendText",
 	async beforeRegisterNodeDef(nodeType, nodeData, app) {
-		if (nodeData.name === "SendText") {
+		if (nodeData.name === "Send Text") {
 			const onExecuted = nodeType.prototype.onExecuted;
 			nodeType.prototype.onExecuted = function (message) {
 				onExecuted?.apply(this, arguments);
