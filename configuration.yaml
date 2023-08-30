@@ -1,11 +1,33 @@
-# the key under which the metadata dictionary should be stored
+# the master key under which the metadata dictionary should be stored
 metadata_master_key:
 - cg
 
-# common labels for use within the dictionary (and their type - default is STRING)
-metadata_common_keys:
+# Debug - turn on to get lots of information about the nodes
+debug:
+- off
+
+# Nodes from which to get the metadata. The format is:
+# key, node_title, output_or_input
+# where key is the key under which this data is to be stored
+# node_title is the title of the node in your workflow (use #n to get the n'th instance)
+# output_or_input is the name of an output, or of an input (or widget) of a node (append '!' to skip outputs when there are both inputs and outputs)
+#
+#Turn debug on to list node names and the available outputs and inputs
+metadata_sources:
+- image_name, Load Image and Metadata, image!
+- prompt, CLIPTextEncode, text
+- negative_prompt, CLIPTextEncode#2, text
+- ckpt_name, CheckpointLoaderSimple, ckpt_name
+- steps, KSampler, steps
+- seed, KSampler, seed
+- cfg, KSampler, cfg
+
+# output nodes on the Get Metadata node, and their type (default is STRING)
+get_metadata_outputs:
 - ckpt_name
 - prompt
-- negative
-- seed,INT
+- negative_prompt
+- seed, INT
+- cfg, FLOAT
+- steps, INT
 - comment
