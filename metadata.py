@@ -12,6 +12,10 @@ class Metadata():
     debug = False
 
     @classmethod
+    def pretty(cls):
+        return json.dumps(cls._dictionary, indent=2)
+
+    @classmethod
     def set_debug(cls):
         try:
             cls.debug = get_config_metadata('debug')[0]

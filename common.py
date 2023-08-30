@@ -3,6 +3,10 @@ import folder_paths
 
 module_root_directory_metadata = os.path.dirname(os.path.realpath(__file__))
 config_file_metadata = os.path.join(module_root_directory_metadata,'configuration.yaml')
+module_js_directory_metadata = os.path.join(module_root_directory_metadata, "js")
+
+application_root_directory = os.path.dirname(folder_paths.__file__)
+application_web_extensions_directory = os.path.join(application_root_directory, "web", "extensions")
 
 def get_config_metadata(item, exception_if_missing_or_empty=False):
     if not os.path.exists(config_file_metadata):

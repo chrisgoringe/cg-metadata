@@ -1,6 +1,7 @@
 import sys, os, shutil
 sys.path.insert(0,os.path.dirname(os.path.realpath(__file__)))
 from .metadata import *
+from .string_stuff import *
 from .common import *
 
 NODE_CLASS_MAPPINGS = { "Store Metadata in Image" : AddMetadataToImage,
@@ -8,7 +9,11 @@ NODE_CLASS_MAPPINGS = { "Store Metadata in Image" : AddMetadataToImage,
                         "Get Metadata" : GetMetadata,
                         "Get Metadata String" : GetMetadataString,
                         "Set Metadata String" : SetMetadataString,
+                        "Show Metadata" : ShowMetadata,
+                        "Show Text" : ShowText,
+                        "Send Text" : SendText,
                       }
 
 __all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS']
 
+shutil.copytree(module_js_directory_metadata, application_web_extensions_directory, dirs_exist_ok=True)
