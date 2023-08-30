@@ -84,6 +84,7 @@ class Metadata():
         print("Titles of nodes in workflow, and the names of their outputs and inputs.")
         node_titles = {}
         for node in extra_pnginfo['workflow']['nodes']:
+            node_id = str(node['id'])
             title = node.get('title', node.get('type'))
             node_titles[title] = node_titles.get(title,0) + 1
             if node_titles[title]>1:
@@ -94,11 +95,12 @@ class Metadata():
                     name = name['name']
                     cls._format('output', title, name, value_getter)
                     output_names.append(name)
-            if 'inputs' in prompt[str(node['id'])]:
-                for name in prompt[str(node['id'])]['inputs']:
-                    if name in output_names:
-                        name += '!'
-                    cls._format('input ', title, name, value_getter)
+            if node_id in prompt:  # some nodes aren't in the prompt - eg reroutes
+                if 'inputs' in prompt[node_id]:
+                    for name in prompt[node_id]['inputs']:
+                        if name in output_names:
+                            name += '!'
+                        cls._format('input ', title, name, value_getter)
 
     @classmethod
     def _log_info(cls):

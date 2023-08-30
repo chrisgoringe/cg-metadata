@@ -4,7 +4,7 @@ metadata_master_key:
 
 # Debug - turn on to get lots of information about the nodes
 debug:
-- off
+- on
 
 # Nodes from which to get the metadata. The format is:
 # key, node_title, output_or_input
@@ -14,13 +14,14 @@ debug:
 #
 #Turn debug on to list node names and the available outputs and inputs
 metadata_sources:
-- image_name, Load Image and Metadata, image!
-- prompt, CLIPTextEncode, text
-- negative_prompt, CLIPTextEncode#2, text
 - ckpt_name, CheckpointLoaderSimple, ckpt_name
+- prompt, TwoClipTextEncode, prompt
+- negative_prompt, TwoClipTextEncode, negative_prompt
 - steps, KSampler, steps
 - seed, KSampler, seed
 - cfg, KSampler, cfg
+- sampler, KSampler, sampler_name
+- scheduler, KSampler, scheduler
 
 # output nodes on the Get Metadata node, and their type (default is STRING)
 get_metadata_outputs:
@@ -28,6 +29,8 @@ get_metadata_outputs:
 - prompt
 - negative_prompt
 - seed, INT
-- cfg, FLOAT
 - steps, INT
+- cfg, FLOAT
+- sampler
+- scheduler
 - comment
