@@ -3,7 +3,7 @@ from .metadata import Metadata, MetadataException, MASTER_KEY
 from .cg_node_addressing import NodeAddressing, NodeAddressingException
 from nodes import LoadImage
 from folder_paths import get_annotated_filepath
-import sys
+import sys, random
 
 class LoadImageWithMetadata(Base_metadata, LoadImage):
     @classmethod
@@ -46,6 +46,9 @@ class ClearMetadataAtStart(Base_metadata):
         Metadata.clear()
         extra_pnginfo.pop(MASTER_KEY, None)
         return ()
+    @classmethod
+    def IS_CHANGED(cls, **kwargs):
+        return random.random()
     
 class SetMetadataString(Base_metadata):
     REQUIRED = { "key": ("STRING", {"default":"key"}), "value": ("STRING", {"default":""}) }

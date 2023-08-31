@@ -18,6 +18,10 @@ class ShowMetadata(Base_metadata):
     PRIORITY = -1
     def func(self):
         return {"ui": {"text": Metadata.pretty()}}
+    
+    @classmethod
+    def IS_CHANGED(cls, **kwargs):
+        return random.random()
 
 class SetWidget(Base_metadata):
     REQUIRED = { "target": ("STRING", {"default":"KSampler.sampler_name"}), "text": ("STRING", {"forceInput": True}), }
@@ -45,20 +49,23 @@ class SetWidget(Base_metadata):
 class SetMetadataFromWidget(Base_metadata):
     REQUIRED = { "source": ("STRING", {"default":"KSampler.sampler_name"}), "key": ("STRING", {"default":""}) }
     HIDDEN = { "extra_pnginfo": "EXTRA_PNGINFO", "prompt": "PROMPT" }
-    RETURN_TYPES = ()
-    RETURN_NAMES = ()
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("value",)
     OUTPUT_NODE = True
     PRIORITY = 1
+    OPTIONAL = { "trigger": ("*",{}) }
 
     @classmethod
     def IS_CHANGED(cls, **kwargs):
         return random.random()
 
-    def func(self, source, key, extra_pnginfo, prompt):
+    def func(self, source, key, extra_pnginfo, prompt, trigger=None):
         try:
+            value = ""
             _, value = NodeAddressing.get_key_and_value(prompt, extra_pnginfo, source)
-            Metadata.set(key, value)
+            if key!="":
+                Metadata.set(key, value)
         except NodeAddressingException:
             print(f"{sys.exc_info()[1].args[0]}")
             NodeAddressing.print_input_details(NodeAddressing.all_inputs(extra_pnginfo, prompt, widgets_only=True)[0])
-        return ()
+        return (str(value),)
