@@ -4,7 +4,7 @@ metadata_master_key:
 
 # Debug - turn on to get lots of information about the nodes (values 0,1,2)
 debug:
-- 0
+- 1
 
 # Nodes from which to get the metadata. The format is:
 # node_title[#n].input[, key]
@@ -14,8 +14,8 @@ debug:
 #Turn debug on to list node names and the available outputs and inputs
 metadata_sources:
 - CheckpointLoaderSimple.ckpt_name
-- TwoClipTextEncode.prompt
-- TwoClipTextEncode.negative_prompt
+- Two Clip Text Encode.prompt
+- Two Clip Text Encode.negative_prompt
 - KSampler.steps
 - KSampler.seed
 - KSampler.cfg

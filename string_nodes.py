@@ -3,16 +3,6 @@ from .common import Base_metadata
 from .metadata import Metadata
 from .cg_node_addressing import NodeAddressing, NodeAddressingException
 
-# see text.js
-class ShowText(Base_metadata):
-    REQUIRED = { "text": ("STRING", {"forceInput": True}), }
-    RETURN_TYPES = ("STRING",)
-    RETURN_NAMES = ("text",)
-    OUTPUT_NODE = True
-
-    def func(self, text):
-        return {"ui": {"text": text}, "result": (text,)}
-    
 class ShowMetadata(Base_metadata):
     OUTPUT_NODE = True
     PRIORITY = -1
