@@ -20,13 +20,17 @@ Any key-value pair can be added to the custom dictionary, but the real power is 
 - `Load Image with Metadata` - load the image and its metadata. 
 - `Get Metadata` - read the metadata that has been stored or loaded. 
 - `Set/Get Metadata String` - set or get a custom key-value pair. 
-- `Send Text` - uses a text input to set the value of another node's widget
+- `Set Widget Value` - uses a text input to set the value of another node's widget. The target is specified as `node_name[#n].widget_name`
 - `Show Text` - display the text in the UI
 - `Show Metadata` - display the metadata (at the end of execution)
 
 ## Note on sequencing and triggers
 
 When loading an image and reading its metadata, you want to ensure the load node runs first. To do this, connect any output from the image loader to the `trigger`. The value on this input is ignored, but it ensures the load node executes before the read node. You can also use the `trigger` on `Store Metadata In Image` to ensure anything else you want happens first.
+
+## Viewer
+
+A very simple metadata viewer is included [here](./viewer/index.html)
 
 ## Configuration
 
@@ -36,27 +40,28 @@ The `Store Metadata In Image` node will save and key-value strings added with th
 
 ```yaml
 metadata_sources:
-- image_name, Load Image and Metadata, image!
-- prompt, CLIPTextEncode, text
-- negative_prompt, CLIPTextEncode#2, text
-- ckpt_name, CheckpointLoaderSimple, ckpt_name
-- steps, KSampler, steps
-- seed, KSampler, seed
-- cfg, KSampler, cfg
+- CheckpointLoaderSimple.ckpt_name
+- TwoClipTextEncode.prompt
+- TwoClipTextEncode.negative_prompt
+- KSampler.steps
+- KSampler.seed
+- KSampler.cfg
+- KSampler.sampler_name, sampler
+- KSampler.scheduler
 ```
-each line consists of `[key_name],[node_name],[output_or_input_name]` (spaces around the names are trimmed)
+each line consists of `node_name[#n].input_name[,key]`
 
 The `key` is just the key for the metadata dictionary. 
 
-The `node_name` is the node or title of node. You can set the title of a node in the GUI, in which case this is what gets matched, otherwise a default name for the node type is used, which may not be what gets displayed. Use `Metadata Controller` to switch on debug to get some help finding names (or just use titles!). `#n` appended to the `node_name` means "the n'th instance that matches".
+The `node_name` is the node or title of node. You can set the title of a node in the GUI, in which case this is what gets matched, otherwise a default name for the node type is used, which may not be what gets displayed. `#n` appended to the `node_name` means "the n'th instance that matches".
 
-The `output_or_input_name` is what it sounds like - it will match the name of an output, or if there is no match, the name of an input or widget. Input/Widget names are unique, as are output names, but a node can have an input/widget and an output using the same name: append `!` to ignore outputs if you want the input.
+The `input_name` is what it sounds like - it will match the name of an input or widget. 
 
 If you set debug to on a list of all node_name and output_or_input_name values will be displayed by the `Store Metadata In Image` node on execution, with current value (if available). Debug is read at execution time, so you don't need to restart ComfyUI.
 
 ### Get Metadata
 
-The `Get Metadata` node can also be configured with the outputs you want to read. In this section (which is read at startup, so changes require ComfyUI to be restarted):
+The `Get Metadata` node can also be configured with the keys you want to read. In this section (which is read at startup, so changes require ComfyUI to be restarted):
 ```yaml
 get_metadata_outputs:
 - ckpt_name
@@ -67,4 +72,4 @@ get_metadata_outputs:
 - steps, INT
 - comment
 ```
-each line consists of `[output_name],[type]`, with `,STRING` assumed if the type is not specified.
+each line consists of `key[,type]`, with type defaulting to `STRING`

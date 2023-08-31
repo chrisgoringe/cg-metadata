@@ -37,7 +37,7 @@ app.registerExtension({
 app.registerExtension({
 	name: "cg.SendText",
 	async beforeRegisterNodeDef(nodeType, nodeData, app) {
-		if (nodeData.name === "Send Text") {
+		if (nodeData.name === "Set Widget Value") {
 			const onExecuted = nodeType.prototype.onExecuted;
 			nodeType.prototype.onExecuted = function (message) {
 				onExecuted?.apply(this, arguments);

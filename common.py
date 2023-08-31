@@ -17,7 +17,7 @@ def get_config_metadata(item, exception_if_missing_or_empty=False):
         if value is None and exception_if_missing_or_empty:
             raise Exception(f"{item} in {config_file_metadata} was missing or empty and is required")
         return value
-    
+
 class Base_metadata:
     def __init__(self):
         pass
