@@ -1,11 +1,11 @@
-from .common import Base_metadata, get_config_metadata
+from .common import Base_metadata, get_config_metadata, AlwaysRerun
 from .metadata import Metadata, MetadataException, MASTER_KEY
 from .cg_node_addressing import NodeAddressing, NodeAddressingException
 from nodes import LoadImage
 from folder_paths import get_annotated_filepath
 import sys, random
 
-class LoadImageWithMetadata(Base_metadata, LoadImage):
+class LoadImageWithMetadata(Base_metadata, LoadImage, AlwaysRerun):
     @classmethod
     def INPUT_TYPES(s):
         return LoadImage.INPUT_TYPES()
@@ -20,7 +20,7 @@ class LoadImageWithMetadata(Base_metadata, LoadImage):
             print(sys.exc_info()[1].args[0])
         return self.load_image(image)
 
-class GetMetadata(Base_metadata):
+class GetMetadata(Base_metadata, AlwaysRerun):
     LABELS_AND_TYPES = get_config_metadata('get_metadata_outputs')
     RETURN_NAMES = tuple([l.split(',')[0].strip() for l in LABELS_AND_TYPES])
     RETURN_TYPES = tuple([(l+",STRING").split(',')[1].strip() for l in LABELS_AND_TYPES])
@@ -30,7 +30,7 @@ class GetMetadata(Base_metadata):
     def func(cls, trigger=None):
         return tuple( [Metadata.get(cls.RETURN_NAMES[i],return_type=cls.RETURN_TYPES[i]) for i in range(len(cls.RETURN_NAMES))] )
     
-class GetMetadataString(Base_metadata):
+class GetMetadataString(Base_metadata, AlwaysRerun):
     REQUIRED = { "key": ("STRING", {"default":"key"}) }
     RETURN_TYPES = ("STRING", )
     RETURN_NAMES = ("value", )
@@ -38,7 +38,7 @@ class GetMetadataString(Base_metadata):
     def func(self, key, trigger=None):
         return (Metadata.get(key,return_type="STRING"), )
 
-class ClearMetadataAtStart(Base_metadata):
+class ClearMetadataAtStart(Base_metadata, AlwaysRerun):
     OUTPUT_NODE = True
     PRIORITY = 5
     HIDDEN = { "extra_pnginfo": "EXTRA_PNGINFO" }
@@ -46,11 +46,8 @@ class ClearMetadataAtStart(Base_metadata):
         Metadata.clear()
         extra_pnginfo.pop(MASTER_KEY, None)
         return ()
-    @classmethod
-    def IS_CHANGED(cls, **kwargs):
-        return random.random()
     
-class SetMetadataString(Base_metadata):
+class SetMetadataString(Base_metadata, AlwaysRerun):
     REQUIRED = { "key": ("STRING", {"default":"key"}), "value": ("STRING", {"default":""}) }
     OUTPUT_NODE = True
     PRIORITY = 1

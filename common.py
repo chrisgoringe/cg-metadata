@@ -1,4 +1,4 @@
-import os, yaml
+import os, yaml, random
 import folder_paths
 
 module_root_directory_metadata = os.path.dirname(os.path.realpath(__file__))
@@ -37,3 +37,7 @@ class Base_metadata:
     RETURN_TYPES = ()
     RETURN_NAMES = ()
     
+class AlwaysRerun():
+    @classmethod
+    def IS_CHANGED(cls, **kwargs):
+        return random.random()
