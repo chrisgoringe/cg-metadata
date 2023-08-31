@@ -56,7 +56,7 @@ class SetMetadataFromWidget(Base_metadata):
 
     def func(self, source, key, extra_pnginfo, prompt):
         try:
-            value = NodeAddressing.get_key_and_value(prompt, extra_pnginfo, source)
+            _, value = NodeAddressing.get_key_and_value(prompt, extra_pnginfo, source)
             Metadata.set(key, value)
         except NodeAddressingException:
             print(f"{sys.exc_info()[1].args[0]}")
