@@ -15,6 +15,7 @@ NODE_CLASS_MAPPINGS = {
                         "Show Metadata" : ShowMetadata,
                         "Show Text" : ShowText,
                         "Set Widget Value" : SetWidget,
+                        "Set Metadata from Widget" : SetMetadataFromWidget,
                       }
 
 __all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS']

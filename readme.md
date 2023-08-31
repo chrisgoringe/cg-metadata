@@ -73,3 +73,16 @@ get_metadata_outputs:
 - comment
 ```
 each line consists of `key[,type]`, with type defaulting to `STRING`
+
+## Priorities
+
+ 5 - (Initialise things) ClearMetadataAtStart
+
+ 2 - (Modify the prompt) SetWidget
+
+ 1 - (Read metadata from prompt) SetMetadataString, SetMetadataFromWidget
+
+ 0 - AddMetadataToImage
+
+-1 - (Right at the end) ShowMetaData
+

@@ -25,7 +25,7 @@ class SetWidget(Base_metadata):
     RETURN_TYPES = ()
     RETURN_NAMES = ()
     OUTPUT_NODE = True
-    PRIORITY = 1
+    PRIORITY = 2
 
     @classmethod
     def IS_CHANGED(cls, **kwargs):
@@ -36,9 +36,29 @@ class SetWidget(Base_metadata):
             node_id, widget_name = NodeAddressing.set_value(prompt, extra_pnginfo, target, text)
             if Metadata.debug>1:
                 print(f"Set {target} to {text}")
-        except:
+        except NodeAddressingException:
             print(f"{sys.exc_info()[1].args[0]}")
             NodeAddressing.print_input_details(NodeAddressing.all_inputs(extra_pnginfo, prompt, widgets_only=True)[0])
             return ()
         return {"ui": {"node_id": str(node_id), "widget_name": widget_name, "text": text}}
     
+class SetMetadataFromWidget(Base_metadata):
+    REQUIRED = { "source": ("STRING", {"default":"KSampler.sampler_name"}), "key": ("STRING", {"default":""}) }
+    HIDDEN = { "extra_pnginfo": "EXTRA_PNGINFO", "prompt": "PROMPT" }
+    RETURN_TYPES = ()
+    RETURN_NAMES = ()
+    OUTPUT_NODE = True
+    PRIORITY = 1
+
+    @classmethod
+    def IS_CHANGED(cls, **kwargs):
+        return random.random()
+
+    def func(self, source, key, extra_pnginfo, prompt):
+        try:
+            value = NodeAddressing.get_key_and_value(prompt, extra_pnginfo, source)
+            Metadata.set(key, value)
+        except NodeAddressingException:
+            print(f"{sys.exc_info()[1].args[0]}")
+            NodeAddressing.print_input_details(NodeAddressing.all_inputs(extra_pnginfo, prompt, widgets_only=True)[0])
+        return ()

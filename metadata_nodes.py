@@ -62,6 +62,7 @@ class AddMetadataToImage(Base_metadata):
     RETURN_TYPES = ("IMAGE",)
     OPTIONAL = { "trigger": ("*",{}) }
     OUTPUT_NODE = True
+    PRIORITY = 0
 
     def func(self, image, extra_pnginfo:dict, prompt, trigger=None):
         Metadata.set_debug()
