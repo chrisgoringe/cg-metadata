@@ -4,7 +4,7 @@ metadata_master_key:
 
 # Debug - turn on to get lots of information about the nodes (values 0,1,2)
 debug:
-- 1
+- 0
 
 # Nodes from which to get the metadata. The format is:
 # node_title[#n].input[, key]
