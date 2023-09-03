@@ -4,7 +4,7 @@ metadata_master_key:
 
 # Debug - turn on to get lots of information about the nodes (values 0,1,2)
 debug:
-- 0
+- 2
 
 # Nodes from which to get the metadata. The format is:
 # node_title[#n].input[, key]
@@ -21,6 +21,13 @@ metadata_sources:
 - KSampler.cfg
 - KSampler.sampler_name, sampler
 - KSampler.scheduler
+- LoraLoader.lora_name, lora_name1
+- LoraLoader.strength_model, lora_strength_model1
+- LoraLoader.strength_clip, lora_strength_clip1
+- LoraLoader#2.lora_name, lora_name2
+- LoraLoader#2.strength_model, lora_strength_model2
+- LoraLoader#2.strength_clip, lora_strength_clip2
+
 
 # keys to be output by the Get Metadata node, and their type (default is STRING)
 get_metadata_outputs:

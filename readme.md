@@ -23,6 +23,7 @@ Any key-value pair can be added to the custom dictionary, but the real power is 
 - `Set Widget Value` - uses a text input to set the value of another node's widget. The target is specified as `node_name[#n].widget_name`
 - `Show Text` - display the text in the UI
 - `Show Metadata` - display the metadata (at the end of execution)
+- `Set Metadata from Widget` / `Set Widget from Metadata`
 
 ## Note on sequencing and triggers
 
@@ -78,7 +79,9 @@ each line consists of `key[,type]`, with type defaulting to `STRING`
 
  5 - (Initialise things) ClearMetadataAtStart
 
- 2 - (Modify the prompt) SetWidget
+ 4 - Load Image and Metadata
+
+ 2 - (Modify the prompt) SetWidget, SetWidgetFromMetadata
 
  1 - (Read metadata from prompt) SetMetadataString, SetMetadataFromWidget
 

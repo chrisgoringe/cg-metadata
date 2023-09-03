@@ -3,14 +3,16 @@ from .metadata import Metadata, MetadataException, MASTER_KEY
 from .cg_node_addressing import NodeAddressing, NodeAddressingException
 from nodes import LoadImage
 from folder_paths import get_annotated_filepath
-import sys, random
+import sys
 
-class LoadImageWithMetadata(Base_metadata, LoadImage, AlwaysRerun):
+class LoadImageWithMetadata(AlwaysRerun, Base_metadata, LoadImage):
     @classmethod
     def INPUT_TYPES(s):
         return LoadImage.INPUT_TYPES()
     RETURN_TYPES = ("IMAGE", "MASK", )
     RETURN_NAMES = ("image", "mask", )
+    OUTPUT_NODE = True
+    PRIORITY = 4
 
     def func(self, image):
         Metadata.set_debug()
@@ -20,7 +22,7 @@ class LoadImageWithMetadata(Base_metadata, LoadImage, AlwaysRerun):
             print(sys.exc_info()[1].args[0])
         return self.load_image(image)
 
-class GetMetadata(Base_metadata, AlwaysRerun):
+class GetMetadata(AlwaysRerun, Base_metadata):
     LABELS_AND_TYPES = get_config_metadata('get_metadata_outputs')
     RETURN_NAMES = tuple([l.split(',')[0].strip() for l in LABELS_AND_TYPES])
     RETURN_TYPES = tuple([(l+",STRING").split(',')[1].strip() for l in LABELS_AND_TYPES])
@@ -36,7 +38,7 @@ class GetMetadataString(Base_metadata, AlwaysRerun):
     RETURN_NAMES = ("value", )
     OPTIONAL = { "trigger": ("*",{}) }
     def func(self, key, trigger=None):
-        return (Metadata.get(key,return_type="STRING"), )
+        return (str(Metadata.get(key,return_type="STRING")), )
 
 class ClearMetadataAtStart(Base_metadata, AlwaysRerun):
     OUTPUT_NODE = True

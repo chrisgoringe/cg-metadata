@@ -74,7 +74,7 @@ class Metadata():
 
     @classmethod
     def debug_info(cls, extra_pnginfo, prompt):
-        if cls.debug:
+        if cls.debug > 1:
             available, unavailable = NodeAddressing.all_inputs(extra_pnginfo, prompt)
             print(" ")
             print("Metadata Debugging info")
