@@ -3,7 +3,7 @@ from .metadata import Metadata, MetadataException, MASTER_KEY
 from .cg_node_addressing import NodeAddressing, NodeAddressingException
 from nodes import LoadImage
 from folder_paths import get_annotated_filepath
-import sys
+import sys, json
 
 class LoadImageWithMetadata(AlwaysRerun, Base_metadata, LoadImage):
     @classmethod
@@ -58,15 +58,50 @@ class SetMetadataString(Base_metadata, AlwaysRerun):
         Metadata.set(key,value)
         return ( )
 
+class SendMetadataToWidgets(Base_metadata, AlwaysRerun):
+    HIDDEN = { "extra_pnginfo": "EXTRA_PNGINFO", "prompt": "PROMPT" }
+    OPTIONAL = { "trigger": ("*",{}) }
+    RETURN_TYPES = ("STRING", )
+    RETURN_NAMES = ("text_displayed",)
+    OUTPUT_NODE = True
+    def func(self, extra_pnginfo:dict, prompt, trigger=None):
+        sent = {}
+        not_sent = {}
+        updates = []
+        for target in get_config_metadata('metadata_sources'):
+            try:
+                display_target_name = target.split(",")[0]
+                key, _, _, _ = NodeAddressing.parse_source(target)
+                _, old_value = NodeAddressing.get_key_and_value(prompt, extra_pnginfo, target, widgets_only=True)
+                value = Metadata.get(key)
+                if value is None:
+                    not_sent[display_target_name] = f"  ** Not set ** {key} was not in metadata"
+                    continue
+                if isinstance(old_value, float):
+                    value = float(value)
+                elif isinstance(old_value, int):
+                    value = int(value)
+                else:
+                    value = str(value)
+                node_id, widget_name = NodeAddressing.set_value(prompt, extra_pnginfo, target, value)
+                sent[display_target_name] = value
+                updates.append((str(node_id), widget_name, str(value)))
+            except NodeAddressingException:
+                message = sys.exc_info()[1].args[0]
+                print(message)
+                not_sent[display_target_name] = f"  ** Not set ** {message}"
+
+        text = {"Set": sent, "Not set": not_sent}
+        return {"ui": {"text_displayed": json.dumps(text, indent=2), "updates": updates}, "result":(json.dumps(text, indent=2),)}
+
 class AddMetadataToImage(Base_metadata):
     REQUIRED = { "image": ("IMAGE", {}), }
     HIDDEN = { "extra_pnginfo": "EXTRA_PNGINFO", "prompt": "PROMPT" }
     RETURN_TYPES = ("IMAGE",)
-    OPTIONAL = { "trigger": ("*",{}) }
     OUTPUT_NODE = True
     PRIORITY = 0
 
-    def func(self, image, extra_pnginfo:dict, prompt, trigger=None):
+    def func(self, image, extra_pnginfo:dict, prompt):
         Metadata.set_debug()
         Metadata.debug_info(extra_pnginfo, prompt)
         issues = False

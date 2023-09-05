@@ -31,12 +31,5 @@ metadata_sources:
 
 # keys to be output by the Get Metadata node, and their type (default is STRING)
 get_metadata_outputs:
-- ckpt_name
 - prompt
 - negative_prompt
-- seed, INT
-- steps, INT
-- cfg, FLOAT
-- sampler
-- scheduler
-- comment

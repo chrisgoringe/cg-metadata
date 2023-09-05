@@ -1,5 +1,5 @@
 import sys
-from .common import Base_metadata, AlwaysRerun
+from .common import Base_metadata, AlwaysRerun, classproperty
 from .metadata import Metadata
 from .cg_node_addressing import NodeAddressing, NodeAddressingException
 
@@ -10,50 +10,63 @@ class ShowMetadata(Base_metadata, AlwaysRerun):
     RETURN_TYPES = ("STRING",)
     RETURN_NAMES = ("text_displayed",)
     def func(self, **kwargs):
-        return {"ui": {"text_displayed": Metadata.pretty()}}
+        return {"ui": {"text_displayed": Metadata.pretty()}, "result":(Metadata.pretty(),)}
 
 class SetWidget(Base_metadata, AlwaysRerun):
     CATEGORY = "metadata/widgets"
-    REQUIRED = {"target": ("STRING", {"default":"KSampler.sampler_name"}), 
-                "cast": (["string","int","float"],{} )}
-    OPTIONAL = { "value": ("*",{})}
+    @classproperty
+    def REQUIRED(cls):
+        return {"target": ("STRING", {"default":"KSampler.sampler_name"}), 
+                "value": (cls.TYPE, { "default":cls.DEFAULT })}
+    OPTIONAL = { "trigger": ("*",{}) }
     HIDDEN = { "extra_pnginfo": "EXTRA_PNGINFO", "prompt": "PROMPT" }
-    RETURN_TYPES = ()
-    RETURN_NAMES = ()
     OUTPUT_NODE = True
-    PRIORITY = 2
 
-    def func(self, target, cast, value, extra_pnginfo, prompt):
+    def func(self, target, value, extra_pnginfo, prompt, trigger=None):
         try:
             try:
-                value = int(value) if cast=="int" else float(value) if cast=="float" else str(value)
+                value = self.CAST(value)
             except ValueError:
-                print(f"Failed to cast '{value}' as {cast}, using default value")
-                value = {"string":"","int":0,"float":0.0}[cast]
+                print(f"Failed to cast '{value}' as {self.TYPE}, using default value {self.DEFAULT}")
+                value = self.DEFAULT
             node_id, widget_name = NodeAddressing.set_value(prompt, extra_pnginfo, target, value)
             if Metadata.debug>1:
-                print(f"Set {target} to {value} as {cast}")
+                print(f"Set {target} to {value} as {self.TYPE}")
+            return [(str(node_id), widget_name, str(value)),]
         except NodeAddressingException:
             print(f"{sys.exc_info()[1].args[0]}")
-            NodeAddressing.print_input_details(NodeAddressing.all_inputs(extra_pnginfo, prompt, widgets_only=True)[0])
-            return {}
-        return {"ui": {"node_id": str(node_id), "widget_name": widget_name, "text": str(value)}}
+            if Metadata.debug>1:
+                NodeAddressing.print_input_details(NodeAddressing.all_inputs(extra_pnginfo, prompt, widgets_only=True)[0])
+            return []
+
+class SetWidgetInt(SetWidget):
+    TYPE = "INT"
+    DEFAULT = 0
+    CAST = int
+    
+class SetWidgetFloat(SetWidgetInt):
+    TYPE = "FLOAT"
+    DEFAULT = 0.0
+    CAST = float
+    
+class SetWidgetString(SetWidgetInt):
+    TYPE = "STRING"
+    DEFAULT = ""
+    CAST = str
 
 class SetWidgetFromMetadata(SetWidget):
-    REQUIRED = {"key": ("STRING", {"default":""}),
+    @classproperty
+    def REQUIRED(cls):
+        return {"key": ("STRING", {"default":""}),
                 "target": ("STRING", {"default":"KSampler.sampler_name"}), 
                 "cast": (["string","int","float"],{} )}
-    RETURN_TYPES = ("STRING", )
-    RETURN_NAMES = ("value", )
-    OPTIONAL = { "trigger": ("*",{}) }
     FUNCTION = "_func"
-    def _func(self, **kwargs):
-        text = str(Metadata.get(kwargs.pop('key'),return_type="STRING"))
-        kwargs.pop('trigger',None)
-        kwargs['value'] = text
-        result = self.func( **kwargs )
-        result['result'] = (text,)
-        return result
+
+    def _func(self, key, target, cast, extra_pnginfo, prompt, trigger=None):
+        text = str(Metadata.get(key,return_type="STRING"))
+        self.CAST = float if cast=="float" else int if cast=="int" else str
+        self.DEFAULT = 0.0 if cast=="float" else 0 if cast=="int" else ""
+        return self.func(target, text, extra_pnginfo, prompt)
 
 class SetMetadataFromWidget(Base_metadata, AlwaysRerun):
     CATEGORY = "metadata/widgets"

@@ -13,7 +13,10 @@ NODE_CLASS_MAPPINGS = {
                         "Get Metadata String" : GetMetadataString,
                         "Set Metadata String" : SetMetadataString,
                         "Show Metadata" : ShowMetadata,
-                        "Set Widget Value" : SetWidget,
+                        "Send Metadata to Widgets": SendMetadataToWidgets,
+                        "Set Widget Int" : SetWidgetInt,
+                        "Set Widget Float" : SetWidgetFloat,
+                        "Set Widget String" : SetWidgetString,
                         "Set Widget from Metadata" : SetWidgetFromMetadata,
                         "Set Metadata from Widget" : SetMetadataFromWidget,
                       }

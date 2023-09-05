@@ -15,17 +15,21 @@ if (install) {
 		name: name,
 		version: version,
 		async beforeRegisterNodeDef(nodeType, nodeData, app) {
-			if (nodeData.name === "Set Widget Value" || nodeData.name === "Set Widget from Metadata") {
+			if (nodeData.name.substring(0,10) === "Set Widget" || 
+			    nodeData.name === "Send Metadata to Widgets") {
 				const onExecuted = nodeType.prototype.onExecuted;
 				nodeType.prototype.onExecuted = function (message) {
 					onExecuted?.apply(this, arguments);
-					const widget_name = message.widget_name?.join('');
-					const text = message.text?.join('')
-					const node_id = parseInt(message.node_id?.join(''))
-					if (widget_name && text && node_id>=0) {
-						const widget = this.graph._nodes_by_id[node_index]?.widgets.find((w) => w.name===widget_name);
-						if (widget) { widget.value = text; } else { console.log("cg.customnodes.SendText - Widget "+widget_name+" not found")}
-					} else { console.log("cg.customnodes.SendText - Something missing")}
+					message.updates.forEach(update => {
+						var node_id = parseInt(update[0]);
+						var widget_name = update[1];
+						var text = update[2];
+						var widget = this.graph._nodes_by_id[node_id]?.widgets.find((w) => w.name===widget_name);
+						if (widget) { 
+							widget.value = text; 
+							this.graph._nodes_by_id[node_id].onResize?.(this.size);
+						} else { console.log("cg.customnodes.SendText - Widget "+widget_name+" not found")}
+					});
 				};
 			}
 		},
