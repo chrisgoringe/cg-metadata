@@ -1,4 +1,4 @@
-from .common import get_config_metadata
+from .configure_nodes import get_config_metadata
 from PIL import Image
 import json, sys
 from .cg_node_addressing import NodeAddressing

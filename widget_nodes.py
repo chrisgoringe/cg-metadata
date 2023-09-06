@@ -3,24 +3,17 @@ from .common import Base_metadata, AlwaysRerun, classproperty
 from .metadata import Metadata
 from .cg_node_addressing import NodeAddressing, NodeAddressingException
 
-class ShowMetadata(Base_metadata, AlwaysRerun):
-    CATEGORY = "metadata/display"
-    OUTPUT_NODE = True
-    OPTIONAL = { "trigger": ("*",{}) }
-    RETURN_TYPES = ("STRING",)
-    RETURN_NAMES = ("text_displayed",)
-    def func(self, **kwargs):
-        return {"ui": {"text_displayed": Metadata.pretty()}, "result":(Metadata.pretty(),)}
 
 class SetWidget(Base_metadata, AlwaysRerun):
     CATEGORY = "metadata/widgets"
     @classproperty
     def REQUIRED(cls):
-        return {"target": ("STRING", {"default":"KSampler.sampler_name"}), 
+        return {"target": ("STRING", {"default":"node.widget"}), 
                 "value": (cls.TYPE, { "default":cls.DEFAULT })}
     OPTIONAL = { "trigger": ("*",{}) }
     HIDDEN = { "extra_pnginfo": "EXTRA_PNGINFO", "prompt": "PROMPT" }
     OUTPUT_NODE = True
+    TYPE = DEFAULT = CAST = None
 
     def func(self, target, value, extra_pnginfo, prompt, trigger=None):
         try:
@@ -44,15 +37,19 @@ class SetWidgetInt(SetWidget):
     DEFAULT = 0
     CAST = int
     
-class SetWidgetFloat(SetWidgetInt):
+class SetWidgetFloat(SetWidget):
     TYPE = "FLOAT"
     DEFAULT = 0.0
     CAST = float
     
-class SetWidgetString(SetWidgetInt):
+class SetWidgetString(SetWidget):
     TYPE = "STRING"
     DEFAULT = ""
     CAST = str
+    @classproperty
+    def REQUIRED(cls):
+        return {"target": ("STRING", {"default":"node.widget"}), 
+                "value": (cls.TYPE, { "default":cls.DEFAULT, "multiline": True })}
 
 class SetWidgetFromMetadata(SetWidget):
     @classproperty

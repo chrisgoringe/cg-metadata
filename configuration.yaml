@@ -27,9 +27,3 @@ metadata_sources:
 - LoraLoader#2.lora_name, lora_name2
 - LoraLoader#2.strength_model, lora_strength_model2
 - LoraLoader#2.strength_clip, lora_strength_clip2
-
-
-# keys to be output by the Get Metadata node, and their type (default is STRING)
-get_metadata_outputs:
-- prompt
-- negative_prompt

@@ -1,15 +1,16 @@
 import sys, os, shutil
 sys.path.insert(0,os.path.dirname(os.path.realpath(__file__)))
 from .metadata import *
-from .string_nodes import *
+from .widget_nodes import *
 from .metadata_nodes import *
+from .configure_nodes import *
 from .common import *
 
 NODE_CLASS_MAPPINGS = { 
-                        "Clear Metadata at Start" : ClearMetadataAtStart,
+                        "Configure Metadata" : EditConfiguration,
+                        "Clear Metadata" : ClearMetadata,
                         "Store Metadata in Image" : AddMetadataToImage,
                         "Load Image and Metadata" : LoadImageWithMetadata,
-                        "Get Metadata" : GetMetadata,
                         "Get Metadata String" : GetMetadataString,
                         "Set Metadata String" : SetMetadataString,
                         "Show Metadata" : ShowMetadata,
