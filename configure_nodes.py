@@ -15,10 +15,10 @@ def _get_config_metadata(item, exception_if_missing_or_empty):
     
 def get_config_metadata(item, exception_if_missing_or_empty=False):
     if item=='metadata_sources':
-        return EditConfiguration.CONFIGURATION
+        return ConfigureMetadataSources.CONFIGURATION
     return _get_config_metadata(item, exception_if_missing_or_empty)
 
-class EditConfiguration(Base_metadata, AlwaysRerun):
+class ConfigureMetadataSources(Base_metadata, AlwaysRerun):
     CATEGORY = "metadata"
     @classproperty
     def REQUIRED(cls):

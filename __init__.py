@@ -7,7 +7,7 @@ from .configure_nodes import *
 from .common import *
 
 NODE_CLASS_MAPPINGS = { 
-                        "Configure Metadata" : EditConfiguration,
+                        "Configure Metadata Sources" : ConfigureMetadataSources,
                         "Clear Metadata" : ClearMetadata,
                         "Store Metadata in Image" : AddMetadataToImage,
                         "Load Image and Metadata" : LoadImageWithMetadata,
