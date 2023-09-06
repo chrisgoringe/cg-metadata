@@ -96,8 +96,9 @@ class AddMetadataToImage(Base_metadata):
     HIDDEN = { "extra_pnginfo": "EXTRA_PNGINFO", "prompt": "PROMPT" }
     RETURN_TYPES = ("IMAGE",)
     OUTPUT_NODE = True
+    OPTIONAL = { "trigger": ("*",{}) }
 
-    def func(self, image, extra_pnginfo:dict, prompt):
+    def func(self, image, extra_pnginfo:dict, prompt, trigger=None):
         Metadata.set_debug()
         Metadata.debug_info(extra_pnginfo, prompt)
         issues = False
