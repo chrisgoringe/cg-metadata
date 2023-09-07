@@ -1,4 +1,4 @@
-from .common import Base_metadata, AlwaysRerun
+from .common import Base_metadata, AlwaysRerun, textdisplay
 from .configure_nodes import get_config_metadata
 from .metadata import Metadata, MetadataException, MASTER_KEY
 from .cg_node_addressing import NodeAddressing, NodeAddressingException
@@ -6,14 +6,12 @@ from nodes import LoadImage
 from folder_paths import get_annotated_filepath
 import sys, json
 
+@textdisplay
 class ShowMetadata(Base_metadata, AlwaysRerun):
     CATEGORY = "metadata/display"
-    OUTPUT_NODE = True
     OPTIONAL = { "trigger": ("*",{}) }
-    RETURN_TYPES = ("STRING",)
-    RETURN_NAMES = ("text_displayed",)
     def func(self, **kwargs):
-        return {"ui": {"text_displayed": Metadata.pretty()}, "result":(Metadata.pretty(),)}
+        return (Metadata.pretty(),)
     
 class LoadImageWithMetadata(AlwaysRerun, LoadImage):
     OUTPUT_NODE = True
@@ -47,20 +45,19 @@ class ClearMetadata(Base_metadata, AlwaysRerun):
     
 class SetMetadataString(Base_metadata, AlwaysRerun):
     REQUIRED = { "key": ("STRING", {"default":"key"}), "value": ("STRING", {"default":""}) }
+    OPTIONAL = { "trigger": ("*",{}) }
     OUTPUT_NODE = True
     RETURN_TYPES = ("STRING", "STRING", )
     RETURN_NAMES = ("value", "key" )
-    def func(self, key, value):
+    def func(self, key, value, trigger=None):
         Metadata.set_debug()
         Metadata.set(key,value)
         return (value, key, )
 
+@textdisplay
 class SendMetadataToWidgets(Base_metadata, AlwaysRerun):
     HIDDEN = { "extra_pnginfo": "EXTRA_PNGINFO", "prompt": "PROMPT" }
     OPTIONAL = { "trigger": ("*",{}) }
-    RETURN_TYPES = ("STRING", )
-    RETURN_NAMES = ("text_displayed",)
-    OUTPUT_NODE = True
     def func(self, extra_pnginfo:dict, prompt, trigger=None):
         sent = {}
         not_sent = {}
@@ -89,7 +86,7 @@ class SendMetadataToWidgets(Base_metadata, AlwaysRerun):
                 not_sent[display_target_name] = f"  ** Not set ** {message}"
 
         text = {"Set": sent, "Not set": not_sent}
-        return {"ui": {"text_displayed": json.dumps(text, indent=2), "updates": updates}, "result":(json.dumps(text, indent=2),)}
+        return (json.dumps(text, indent=2),)
 
 class AddMetadataToImage(Base_metadata):
     REQUIRED = { "image": ("IMAGE", {}), }
