@@ -22,9 +22,10 @@ class ConfigureMetadataSources(Base_metadata, AlwaysRerun):
     CATEGORY = "metadata"
     @classproperty
     def REQUIRED(cls):
-        return {"configuration": ("STRING", {"default":cls.display(cls.CONFIGURATION), "multiline":True})}
+        return { "active": (["yes","no"],{}), "configuration": ("STRING", {"default":cls.display(cls.CONFIGURATION), "multiline":True})}
     RETURN_TYPES = ("STRING", )
     RETURN_NAMES = ("configuration", )
+    OPTIONAL = { "trigger": ("*",{}) }
     OUTPUT_NODE = True
     CONFIGURATION = _get_config_metadata('metadata_sources', True)
 
@@ -37,6 +38,7 @@ class ConfigureMetadataSources(Base_metadata, AlwaysRerun):
         return list (s.strip() for s in string.split('- '))[1:]
 
     @classmethod
-    def func(cls, configuration):
-        cls.CONFIGURATION = cls.parse(configuration)
+    def func(cls, active, configuration, trigger=None):
+        if active=="yes":
+            cls.CONFIGURATION = cls.parse(configuration)
         return (configuration,)

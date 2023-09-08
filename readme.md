@@ -16,18 +16,17 @@ Any key-value pair can be added to the custom dictionary, but the real power is 
 
 ## The nodes
 
-- `Store Metadata In Image` - inserted just upstream of an image save, this node adds metadata to the pnginfo. 
-- `Load Image with Metadata` - load the image and its metadata. 
-- `Get Metadata` - read the metadata that has been stored or loaded. 
-- `Set/Get Metadata String` - set or get a custom key-value pair. 
-- `Set Widget Value` - uses a text input to set the value of another node's widget. The target is specified as `node_name[#n].widget_name`
-- `Show Text` - display the text in the UI
-- `Show Metadata` - display the metadata (at the end of execution)
-- `Set Metadata from Widget` / `Set Widget from Metadata`
-
-## Note on sequencing and triggers
-
-When loading an image and reading its metadata, you want to ensure the load node runs first. To do this, connect any output from the image loader to the `trigger`. The value on this input is ignored, but it ensures the load node executes before the read node. You can also use the `trigger` on `Store Metadata In Image` to ensure anything else you want happens first.
+| Node | Purpose |
+|------|---------|
+| `Configure Metadata Sources` | creates a map between widgets in the workflow and keys in the metadata (can also be controlled using `configuration.yaml`) |
+| `Store Metadata in Image` | saves all the metadata specified in the configuration, or manually added, into the image |
+| `Load Image and Metadata` | load an image and any metadata saved with it |
+| `Get/Set Metadata String` | manually set or get the value of metadata |
+| `Show Metadata` | Show all the loaded metadata |
+| `Send Metadata to Widgets` | Send the loaded metadata to the widgets as configured |
+| `Set Widget Int/Float/String` | Set a widget to a value |
+| `Set Widget from Metadata` | Get a widget from a key in the metadata |
+| `Set Metadata from Widget` | Read a widget and save to the metadata |
 
 ## Viewer
 
@@ -35,20 +34,24 @@ A very simple metadata viewer is included [here](./viewer/index.html)
 
 ## Configuration
 
-### Store Metadata
-
-The `Store Metadata In Image` node will save and key-value strings added with the `Set Metadata String` nodes, but it can also read data directly from pretty much any other node. You configure this in `configuration.yaml`. In this section (which is read as the node is executed, so you can change it without a restart):
+Metadata keys can be associated with widgets in the workflow. You configure this in `configuration.yaml`, or using the `Configure Metadata Sources` node. In this section (which is read as the node is executed, so you can change it without a restart):
 
 ```yaml
 metadata_sources:
 - CheckpointLoaderSimple.ckpt_name
-- TwoClipTextEncode.prompt
-- TwoClipTextEncode.negative_prompt
+- Two Clip Text Encode.prompt
+- Two Clip Text Encode.negative_prompt
 - KSampler.steps
 - KSampler.seed
 - KSampler.cfg
 - KSampler.sampler_name, sampler
 - KSampler.scheduler
+- LoraLoader.lora_name, lora_name1
+- LoraLoader.strength_model, lora_strength_model1
+- LoraLoader.strength_clip, lora_strength_clip1
+- LoraLoader#2.lora_name, lora_name2
+- LoraLoader#2.strength_model, lora_strength_model2
+- LoraLoader#2.strength_clip, lora_strength_clip2
 ```
 each line consists of `node_name[#n].input_name[,key]`
 
@@ -60,32 +63,7 @@ The `input_name` is what it sounds like - it will match the name of an input or 
 
 If you set debug to on a list of all node_name and output_or_input_name values will be displayed by the `Store Metadata In Image` node on execution, with current value (if available). Debug is read at execution time, so you don't need to restart ComfyUI.
 
-### Get Metadata
 
-The `Get Metadata` node can also be configured with the keys you want to read. In this section (which is read at startup, so changes require ComfyUI to be restarted):
-```yaml
-get_metadata_outputs:
-- ckpt_name
-- prompt
-- negative_prompt
-- seed, INT
-- cfg, FLOAT
-- steps, INT
-- comment
-```
-each line consists of `key[,type]`, with type defaulting to `STRING`
+## Examples
 
-## Priorities
-
- 5 - (Initialise things) ClearMetadataAtStart
-
- 4 - Load Image and Metadata
-
- 2 - (Modify the prompt) SetWidget, SetWidgetFromMetadata
-
- 1 - (Read metadata from prompt) SetMetadataString, SetMetadataFromWidget
-
- 0 - AddMetadataToImage
-
--1 - (Right at the end) ShowMetaData
-
+to come...

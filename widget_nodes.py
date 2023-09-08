@@ -3,7 +3,6 @@ from .common import Base_metadata, AlwaysRerun, classproperty
 from .metadata import Metadata
 from .cg_node_addressing import NodeAddressing, NodeAddressingException
 
-
 class SetWidget(Base_metadata, AlwaysRerun):
     CATEGORY = "metadata/widgets"
     @classproperty

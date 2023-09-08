@@ -54,23 +54,29 @@ class SetMetadataString(Base_metadata, AlwaysRerun):
         Metadata.set(key,value)
         return (value, key, )
 
-@textdisplay
 class SendMetadataToWidgets(Base_metadata, AlwaysRerun):
+    REQUIRED = { "active": (["yes","no"],{}) }
     HIDDEN = { "extra_pnginfo": "EXTRA_PNGINFO", "prompt": "PROMPT" }
     OPTIONAL = { "trigger": ("*",{}) }
-    def func(self, extra_pnginfo:dict, prompt, trigger=None):
-        sent = {}
-        not_sent = {}
+    DESCRIPTION = "displays_text,"
+    OUTPUT_NODE = True
+    def func(self, active, extra_pnginfo:dict, prompt, trigger=None):
+        if not active=="yes":
+            return {"ui": {"text_displayed":"off", "updates":[] }, "result":()}
+        set = {}
+        key_missing = {}
+        error_setting = {}
         updates = []
         for target in get_config_metadata('metadata_sources'):
             try:
+                key = ""
                 display_target_name = target.split(",")[0]
                 key, _, _, _ = NodeAddressing.parse_source(target)
-                _, old_value = NodeAddressing.get_key_and_value(prompt, extra_pnginfo, target, widgets_only=True)
                 value = Metadata.get(key)
                 if value is None:
-                    not_sent[display_target_name] = f"  ** Not set ** {key} was not in metadata"
+                    key_missing[target] = f"{key}"
                     continue
+                _, old_value = NodeAddressing.get_key_and_value(prompt, extra_pnginfo, target, widgets_only=True)
                 if isinstance(old_value, float):
                     value = float(value)
                 elif isinstance(old_value, int):
@@ -78,15 +84,15 @@ class SendMetadataToWidgets(Base_metadata, AlwaysRerun):
                 else:
                     value = str(value)
                 node_id, widget_name = NodeAddressing.set_value(prompt, extra_pnginfo, target, value)
-                sent[display_target_name] = value
+                set[target] = value
                 updates.append((str(node_id), widget_name, str(value)))
             except NodeAddressingException:
                 message = sys.exc_info()[1].args[0]
                 print(message)
-                not_sent[display_target_name] = f"  ** Not set ** {message}"
+                error_setting[target] = f"  ** {key} {message}"
 
-        text = {"Set": sent, "Not set": not_sent}
-        return (json.dumps(text, indent=2),)
+        text = {"Set": set, "Keys not in metadata": key_missing, "Failed to set": error_setting}
+        return {"ui": {"text_displayed":json.dumps(text, indent=2), "updates":updates }, "result":()}
 
 class AddMetadataToImage(Base_metadata):
     REQUIRED = { "image": ("IMAGE", {}), }
