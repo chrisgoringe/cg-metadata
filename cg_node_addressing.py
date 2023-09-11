@@ -5,13 +5,6 @@ class NodeAddressingException(Exception):
 
 class NodeAddressing:
     _outputs = None
-    #@classmethod
-    #def find_node_output_index(cls, node, output_name):
-    #    if 'outputs' in node:
-    #        for i, output in enumerate(node['outputs']):
-    #            if output['name']==output_name:
-    #                return i
-    #    return None
 
     @classmethod
     def _find_node(cls, extra_pnginfo, node_title, skip):

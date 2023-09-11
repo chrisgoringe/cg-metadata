@@ -1,4 +1,5 @@
-from .common import Base_metadata, AlwaysRerun, textdisplay
+from .common import Base_metadata, AlwaysRerun
+from custom_nodes.cg_custom_core.ui_decorator import ui_signal
 from .configure_nodes import get_config_metadata
 from .metadata import Metadata, MetadataException, MASTER_KEY
 from .cg_node_addressing import NodeAddressing, NodeAddressingException
@@ -6,7 +7,7 @@ from nodes import LoadImage
 from folder_paths import get_annotated_filepath
 import sys, json
 
-@textdisplay
+@ui_signal('display_text')
 class ShowMetadata(Base_metadata, AlwaysRerun):
     CATEGORY = "metadata/display"
     OPTIONAL = { "trigger": ("*",{}) }

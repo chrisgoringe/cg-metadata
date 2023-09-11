@@ -2,6 +2,7 @@ import sys
 from .common import Base_metadata, AlwaysRerun, classproperty
 from .metadata import Metadata
 from .cg_node_addressing import NodeAddressing, NodeAddressingException
+from custom_nodes.cg_custom_core.ui_decorator import ui_signal
 
 class SetWidget(Base_metadata, AlwaysRerun):
     CATEGORY = "metadata/widgets"
@@ -31,16 +32,19 @@ class SetWidget(Base_metadata, AlwaysRerun):
                 NodeAddressing.print_input_details(NodeAddressing.all_inputs(extra_pnginfo, prompt, widgets_only=True)[0])
             return []
 
+@ui_signal('modify_other')
 class SetWidgetInt(SetWidget):
     TYPE = "INT"
     DEFAULT = 0
     CAST = int
-    
+
+@ui_signal('modify_other')
 class SetWidgetFloat(SetWidget):
     TYPE = "FLOAT"
     DEFAULT = 0.0
     CAST = float
-    
+
+@ui_signal('modify_other')    
 class SetWidgetString(SetWidget):
     TYPE = "STRING"
     DEFAULT = ""
@@ -50,6 +54,7 @@ class SetWidgetString(SetWidget):
         return {"target": ("STRING", {"default":"node.widget"}), 
                 "value": (cls.TYPE, { "default":cls.DEFAULT, "multiline": True })}
 
+@ui_signal('modify_other')
 class SetWidgetFromMetadata(SetWidget):
     @classproperty
     def REQUIRED(cls):

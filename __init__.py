@@ -1,4 +1,4 @@
-import sys, os, shutil
+import sys, os
 sys.path.insert(0,os.path.dirname(os.path.realpath(__file__)))
 from .metadata import *
 from .widget_nodes import *
@@ -23,5 +23,3 @@ NODE_CLASS_MAPPINGS = {
                       }
 
 __all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS']
-
-shutil.copytree(module_js_directory_metadata, application_web_extensions_directory, dirs_exist_ok=True)
