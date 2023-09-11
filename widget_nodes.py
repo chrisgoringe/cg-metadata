@@ -1,10 +1,11 @@
 import sys
 from .common import Base_metadata, AlwaysRerun, classproperty
+from custom_nodes.cg_custom_core.base import BaseNode, classproperty
 from .metadata import Metadata
 from .cg_node_addressing import NodeAddressing, NodeAddressingException
 from custom_nodes.cg_custom_core.ui_decorator import ui_signal
 
-class SetWidget(Base_metadata, AlwaysRerun):
+class SetWidget(BaseNode, AlwaysRerun):
     CATEGORY = "metadata/widgets"
     @classproperty
     def REQUIRED(cls):

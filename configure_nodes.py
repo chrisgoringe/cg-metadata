@@ -1,5 +1,6 @@
 import os, yaml
-from common import Base_metadata, module_root_directory_metadata, AlwaysRerun, classproperty
+from custom_nodes.cg_custom_core.base import BaseNode, classproperty
+from common import module_root_directory_metadata, AlwaysRerun
 
 config_file_metadata = os.path.join(module_root_directory_metadata,'configuration.yaml')
 
@@ -18,7 +19,7 @@ def get_config_metadata(item, exception_if_missing_or_empty=False):
         return ConfigureMetadataSources.CONFIGURATION
     return _get_config_metadata(item, exception_if_missing_or_empty)
 
-class ConfigureMetadataSources(Base_metadata, AlwaysRerun):
+class ConfigureMetadataSources(BaseNode, AlwaysRerun):
     CATEGORY = "metadata"
     @classproperty
     def REQUIRED(cls):

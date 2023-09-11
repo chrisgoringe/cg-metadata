@@ -1,4 +1,5 @@
-from .common import Base_metadata, AlwaysRerun
+from .common import AlwaysRerun
+from custom_nodes.cg_custom_core.base import BaseNode, classproperty
 from custom_nodes.cg_custom_core.ui_decorator import ui_signal
 from .configure_nodes import get_config_metadata
 from .metadata import Metadata, MetadataException, MASTER_KEY
@@ -8,8 +9,8 @@ from folder_paths import get_annotated_filepath
 import sys, json
 
 @ui_signal('display_text')
-class ShowMetadata(Base_metadata, AlwaysRerun):
-    CATEGORY = "metadata/display"
+class ShowMetadata(BaseNode, AlwaysRerun):
+    CATEGORY = "metadata"
     OPTIONAL = { "trigger": ("*",{}) }
     def func(self, **kwargs):
         return (Metadata.pretty(),)
@@ -26,7 +27,7 @@ class LoadImageWithMetadata(AlwaysRerun, LoadImage):
             print(sys.exc_info()[1].args[0])
         return self.load_image(image)
     
-class GetMetadataString(Base_metadata, AlwaysRerun):
+class GetMetadataString(BaseNode, AlwaysRerun):
     REQUIRED = { "key": ("STRING", {"default":"key"}) }
     RETURN_TYPES = ("STRING", "STRING", )
     RETURN_NAMES = ("value", "key" )
@@ -34,7 +35,7 @@ class GetMetadataString(Base_metadata, AlwaysRerun):
     def func(self, key, trigger=None):
         return (str(Metadata.get(key,return_type="STRING")), key, )
 
-class ClearMetadata(Base_metadata, AlwaysRerun):
+class ClearMetadata(BaseNode, AlwaysRerun):
     OUTPUT_NODE = True
     RETURN_TYPES = ("STRING", )
     RETURN_NAMES = ("trigger", )
@@ -44,7 +45,7 @@ class ClearMetadata(Base_metadata, AlwaysRerun):
         extra_pnginfo.pop(MASTER_KEY, None)
         return ("",)
     
-class SetMetadataString(Base_metadata, AlwaysRerun):
+class SetMetadataString(BaseNode, AlwaysRerun):
     REQUIRED = { "key": ("STRING", {"default":"key"}), "value": ("STRING", {"default":""}) }
     OPTIONAL = { "trigger": ("*",{}) }
     OUTPUT_NODE = True
@@ -55,7 +56,7 @@ class SetMetadataString(Base_metadata, AlwaysRerun):
         Metadata.set(key,value)
         return (value, key, )
 
-class SendMetadataToWidgets(Base_metadata, AlwaysRerun):
+class SendMetadataToWidgets(BaseNode, AlwaysRerun):
     REQUIRED = { "active": (["yes","no"],{}) }
     HIDDEN = { "extra_pnginfo": "EXTRA_PNGINFO", "prompt": "PROMPT" }
     OPTIONAL = { "trigger": ("*",{}) }
@@ -95,7 +96,7 @@ class SendMetadataToWidgets(Base_metadata, AlwaysRerun):
         text = {"Set": set, "Keys not in metadata": key_missing, "Failed to set": error_setting}
         return {"ui": {"text_displayed":json.dumps(text, indent=2), "updates":updates }, "result":()}
 
-class AddMetadataToImage(Base_metadata):
+class AddMetadataToImage(BaseNode):
     REQUIRED = { "image": ("IMAGE", {}), }
     HIDDEN = { "extra_pnginfo": "EXTRA_PNGINFO", "prompt": "PROMPT" }
     RETURN_TYPES = ("IMAGE",)
