@@ -1,5 +1,5 @@
 from .common import AlwaysRerun
-from custom_nodes.cg_custom_core.base import BaseNode, classproperty
+from custom_nodes.cg_custom_core.base import BaseNode
 from custom_nodes.cg_custom_core.ui_decorator import ui_signal
 from .configure_nodes import get_config_metadata
 from .metadata import Metadata, MetadataException, MASTER_KEY
@@ -56,15 +56,18 @@ class SetMetadataString(BaseNode, AlwaysRerun):
         Metadata.set(key,value)
         return (value, key, )
 
+@ui_signal(['modify_other','display_text'])
 class SendMetadataToWidgets(BaseNode, AlwaysRerun):
     REQUIRED = { "active": (["yes","no"],{}) }
     HIDDEN = { "extra_pnginfo": "EXTRA_PNGINFO", "prompt": "PROMPT" }
     OPTIONAL = { "trigger": ("*",{}) }
-    DESCRIPTION = "displays_text,"
+    CATEGORY = "metadata/widgets"
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("text_displayed",)
     OUTPUT_NODE = True
     def func(self, active, extra_pnginfo:dict, prompt, trigger=None):
         if not active=="yes":
-            return {"ui": {"text_displayed":"off", "updates":[] }, "result":()}
+            return ("off", [], "turned off")
         set = {}
         key_missing = {}
         error_setting = {}
@@ -93,8 +96,8 @@ class SendMetadataToWidgets(BaseNode, AlwaysRerun):
                 print(message)
                 error_setting[target] = f"  ** {key} {message}"
 
-        text = {"Set": set, "Keys not in metadata": key_missing, "Failed to set": error_setting}
-        return {"ui": {"text_displayed":json.dumps(text, indent=2), "updates":updates }, "result":()}
+        text = json.dumps({"Set": set, "Keys not in metadata": key_missing, "Failed to set": error_setting}, indent=2)
+        return(text, updates, text)
 
 class AddMetadataToImage(BaseNode):
     REQUIRED = { "image": ("IMAGE", {}), }

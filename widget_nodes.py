@@ -1,5 +1,5 @@
 import sys
-from .common import Base_metadata, AlwaysRerun, classproperty
+from .common import AlwaysRerun
 from custom_nodes.cg_custom_core.base import BaseNode, classproperty
 from .metadata import Metadata
 from .cg_node_addressing import NodeAddressing, NodeAddressingException
@@ -70,7 +70,7 @@ class SetWidgetFromMetadata(SetWidget):
         self.DEFAULT = 0.0 if cast=="float" else 0 if cast=="int" else ""
         return self.func(target, text, extra_pnginfo, prompt)
 
-class SetMetadataFromWidget(Base_metadata, AlwaysRerun):
+class SetMetadataFromWidget(BaseNode, AlwaysRerun):
     CATEGORY = "metadata/widgets"
     REQUIRED = { "source": ("STRING", {"default":"KSampler.sampler_name"}), "key": ("STRING", {"default":""}) }
     HIDDEN = { "extra_pnginfo": "EXTRA_PNGINFO", "prompt": "PROMPT" }
