@@ -23,7 +23,7 @@ class NodeAddressing:
                 return input
             raise NodeAddressingException(f"Couldn't find input {input_name}")
         except KeyError:
-            raise NodeAddressingException(f"{node['id']} not in prompt - maybe need to refresh?")
+            raise NodeAddressingException(f"{node['id']} not in prompt - (is it bypassed?)")
         
     @classmethod
     def _set_input(cls, prompt, node, input_name, value):
@@ -35,7 +35,7 @@ class NodeAddressing:
                 raise NodeAddressingException(f"Can't set an input, only a widget ({input_name})")
             prompt[str(node['id'])]['inputs'][input_name] = value
         except KeyError:
-            raise NodeAddressingException(f"{node['id']} not in prompt - maybe need to refresh?")       
+            raise NodeAddressingException(f"{node['id']} not in prompt - (is it bypassed?)")       
         
     @classmethod
     def parse_source(cls, source):

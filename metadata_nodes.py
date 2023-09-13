@@ -56,7 +56,7 @@ class SetMetadataString(BaseNode, AlwaysRerun):
         Metadata.set(key,value)
         return (value, key, )
 
-@ui_signal(['modify_other','display_text'])
+@ui_signal(['modify_other','display_text','set_title_color'])
 class SendMetadataToWidgets(BaseNode, AlwaysRerun):
     REQUIRED = { "active": (["yes","no"],{}) }
     HIDDEN = { "extra_pnginfo": "EXTRA_PNGINFO", "prompt": "PROMPT" }
@@ -67,7 +67,7 @@ class SendMetadataToWidgets(BaseNode, AlwaysRerun):
     OUTPUT_NODE = True
     def func(self, active, extra_pnginfo:dict, prompt, trigger=None):
         if not active=="yes":
-            return ("off", [], "turned off")
+            return ("off", [], "turned off", None)
         set = {}
         key_missing = {}
         error_setting = {}
@@ -97,7 +97,8 @@ class SendMetadataToWidgets(BaseNode, AlwaysRerun):
                 error_setting[target] = f"  ** {key} {message}"
 
         text = json.dumps({"Set": set, "Keys not in metadata": key_missing, "Failed to set": error_setting}, indent=2)
-        return(text, updates, text)
+        color = "#337733" if len(key_missing)==0 and len(error_setting)==0 else "#773333"
+        return(text, updates, text, color)
 
 class AddMetadataToImage(BaseNode):
     REQUIRED = { "image": ("IMAGE", {}), }
@@ -105,6 +106,7 @@ class AddMetadataToImage(BaseNode):
     RETURN_TYPES = ("IMAGE",)
     OUTPUT_NODE = True
     OPTIONAL = { "trigger": ("*",{}) }
+    CATEGORY = "metadata"
 
     def func(self, image, extra_pnginfo:dict, prompt, trigger=None):
         Metadata.set_debug()
