@@ -30,6 +30,7 @@ NODE_CLASS_MAPPINGS = {
                         "Set Widget String" : SetWidgetString,
                         "Set Widget from Metadata" : SetWidgetFromMetadata,
                         "Set Metadata from Widget" : SetMetadataFromWidget,
+                        "Set Widgets from Saved Workflow" : SetWidgetsFromSavedWorkflow,
                       }
 
 __all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS']

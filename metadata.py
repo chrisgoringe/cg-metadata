@@ -11,6 +11,8 @@ class MetadataException(Exception):
 class Metadata():
     DEFAULTS = { "STRING":"", "INT":0, "FLOAT":0 }
     _dictionary = {}
+    loaded_prompt = None
+    loaded_workflow = None
     debug = 0
 
     @classmethod
@@ -53,11 +55,15 @@ class Metadata():
     @classmethod
     def add_dictionary_from_image(cls,filepath):
         try:
-            dict = json.loads(Image.open(filepath).text[MASTER_KEY])
-            if cls.debug:
-                print(f"Metadata - loaded dictionary from {filepath}")
-            for key in dict:
-                cls.set(key, dict[key])
+            with Image.open(filepath) as img:
+                text = img.text
+                cls.loaded_prompt = json.loads(text.get('prompt',''))
+                cls.loaded_workflow = json.loads(text.get('workflow',''))
+                dict = json.loads(text[MASTER_KEY])
+                if cls.debug:
+                    print(f"Metadata - loaded dictionary from {filepath}")
+                for key in dict:
+                    cls.set(key, dict[key])
         except AttributeError:
             raise MetadataException(f"Image loaded from {filepath} didn't have metadata")
         except KeyError:

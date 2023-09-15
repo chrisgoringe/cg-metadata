@@ -1,9 +1,72 @@
-import sys
+import sys, json
 from .common import AlwaysRerun
 from custom_nodes.cg_custom_core.base import BaseNode, classproperty
 from .metadata import Metadata
 from .cg_node_addressing import NodeAddressing, NodeAddressingException
 from custom_nodes.cg_custom_core.ui_decorator import ui_signal
+
+@ui_signal(['modify_other', 'display_text'])
+class SetWidgetsFromSavedWorkflow(BaseNode):
+    CATEGORY = "metadata/widgets"
+    REQUIRED = { "image": ("IMAGE",{}) }
+    HIDDEN = { "extra_pnginfo": "EXTRA_PNGINFO", "prompt": "PROMPT" }
+    RETURN_TYPES = ("IMAGE", "STRING", )
+    RETURN_NAMES = ("image", "results", ),
+    
+    def func(self, image, extra_pnginfo, prompt):
+        updates = []
+        results = []
+        issues = set()
+        names = set()
+
+        def get_node_name(node):
+            return node.get('title',None) or node['properties'].get('Node name for S&R',None) or node['type']
+
+        def find_node_matching(original_node):
+            name = get_node_name(original_node)
+            matching_node = None
+            for node in extra_pnginfo['workflow']['nodes']:
+                if get_node_name(node) == name:
+                    if matching_node is not None:
+                        issues.add(f"{name} matched more than once")
+                    matching_node = node
+            return matching_node, name
+        
+        for node in Metadata.loaded_workflow['nodes']:
+            matching_node, node_name = find_node_matching(node)
+            inputs = Metadata.loaded_prompt[str(node['id'])].get('inputs',{}) if str(node['id']) in Metadata.loaded_prompt else {}
+            widget_inputs = {input_name:inputs[input_name] for input_name in inputs if not isinstance(inputs[input_name],list) }
+            if len(widget_inputs)==0:
+                continue
+
+            if node_name in names:
+                issues.add(f"{node_name} was in metadata more than once")
+            names.add(node_name)
+
+            if matching_node:
+                matching_node_id = str(matching_node['id'])
+                for input_name in widget_inputs:
+                    input_value = widget_inputs[input_name]
+                    current_value = prompt[matching_node_id]['inputs'].get(input_name,[None, None])
+                    if not isinstance(input_value,list):
+                        if current_value is not None:
+                            updates.append( (str(matching_node_id), input_name, str(input_value)) )
+                            prompt[matching_node_id]['inputs'][input_name] = input_value
+                            results.append(f"{node_name}.{input_name} set to {input_value}")
+                        else:
+                            if not isinstance(current_value, list):
+                                results.append(f"{node_name}.{input_name} is an input in both workflows")
+                            else:
+                                results.append(f"{node_name}.{input_name} is an input, so was not set to {input_value}")
+                                issues.add(f"{node_name}.{input_name} is an input, so could not be set to {input_value}")
+                    else:
+                        results.append(f"{node_name}.{input_name} was an input")
+            else:
+                results.append(f"{node_name} not found in this workflow")
+                issues.add(f"{node_name} not found in this workflow")
+
+        text = "Warnings:\n"+json.dumps(list(issues), indent=1) if issues else ""
+        return (image, json.dumps(results, indent=1), updates, text)
 
 class SetWidget(BaseNode, AlwaysRerun):
     CATEGORY = "metadata/widgets"

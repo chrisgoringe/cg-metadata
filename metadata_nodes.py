@@ -19,13 +19,15 @@ class LoadImageWithMetadata(AlwaysRerun, LoadImage):
     OUTPUT_NODE = True
     FUNCTION = "func"
     CATEGORY = "metadata"
+    RETURN_TYPES = LoadImage.RETURN_TYPES + ("STRING",)
+    RETURN_NAMES = ("image", "mask", "filename")
     def func(self, image):
         Metadata.set_debug()
         try:
             Metadata.add_dictionary_from_image(get_annotated_filepath(image))
         except MetadataException:
             print(sys.exc_info()[1].args[0])
-        return self.load_image(image)
+        return self.load_image(image) + (image,)
     
 class GetMetadataString(BaseNode, AlwaysRerun):
     REQUIRED = { "key": ("STRING", {"default":"key"}) }
