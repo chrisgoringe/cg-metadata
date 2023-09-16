@@ -2,7 +2,7 @@ import sys, json
 from .common import AlwaysRerun
 from custom_nodes.cg_custom_core.base import BaseNode, classproperty
 from .metadata import Metadata
-from .cg_node_addressing import NodeAddressing, NodeAddressingException
+from .cg_node_addressing import NodeAddressing, NodeAddressingException, Mapping
 from custom_nodes.cg_custom_core.ui_decorator import ui_signal
 
 @ui_signal(['modify_other', 'display_text'])
@@ -81,15 +81,16 @@ class SetWidget(BaseNode, AlwaysRerun):
 
     def func(self, target, value, extra_pnginfo, prompt, trigger=None):
         try:
+            mapping = Mapping.from_node_comma_meta(target)
             try:
                 value = self.CAST(value)
             except ValueError:
                 print(f"Failed to cast '{value}' as {self.TYPE}, using default value {self.DEFAULT}")
                 value = self.DEFAULT
-            node_id, widget_name = NodeAddressing.set_value(prompt, extra_pnginfo, target, value)
+            NodeAddressing.set_value(prompt, extra_pnginfo, mapping, value)
             if Metadata.debug>1:
                 print(f"Set {target} to {value} as {self.TYPE}")
-            return [(str(node_id), widget_name, str(value)),]
+            return [(str(mapping.node_id), mapping.input_name, str(value)),]
         except NodeAddressingException:
             print(f"{sys.exc_info()[1].args[0]}")
             if Metadata.debug>1:
@@ -146,7 +147,8 @@ class SetMetadataFromWidget(BaseNode, AlwaysRerun):
     def func(self, source, key, extra_pnginfo, prompt, trigger=None):
         try:
             value = ""
-            _, value = NodeAddressing.get_key_and_value(prompt, extra_pnginfo, source)
+            mapping = Mapping.from_node_comma_meta(source)
+            _, value = NodeAddressing.get_key_and_value(prompt, extra_pnginfo, mapping)
             if key!="":
                 Metadata.set(key, value)
         except NodeAddressingException:

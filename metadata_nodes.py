@@ -1,9 +1,9 @@
 from .common import AlwaysRerun
-from custom_nodes.cg_custom_core.base import BaseNode
+from custom_nodes.cg_custom_core.base import BaseNode, classproperty
 from custom_nodes.cg_custom_core.ui_decorator import ui_signal
 from .configure_nodes import get_config_metadata
 from .metadata import Metadata, MetadataException, MASTER_KEY
-from .cg_node_addressing import NodeAddressing, NodeAddressingException
+from .cg_node_addressing import NodeAddressing, NodeAddressingException, Mapping
 from nodes import LoadImage
 from folder_paths import get_annotated_filepath
 import sys, json
@@ -60,43 +60,51 @@ class SetMetadataString(BaseNode, AlwaysRerun):
 
 @ui_signal(['modify_other','display_text','set_title_color'])
 class SendMetadataToWidgets(BaseNode, AlwaysRerun):
-    REQUIRED = { "active": (["yes","no"],{}) }
+    CONFIGURATION = get_config_metadata('metadata_sources', True)
+    @classproperty
+    def REQUIRED(cls):
+        return {
+            "active": (["yes","no"],{}), 
+            "configuration": ("STRING", {"default":cls.display(get_config_metadata('metadata_sources', True)), "multiline":True})
+        }
+    
     HIDDEN = { "extra_pnginfo": "EXTRA_PNGINFO", "prompt": "PROMPT" }
     OPTIONAL = { "trigger": ("*",{}) }
     CATEGORY = "metadata/widgets"
     RETURN_TYPES = ("STRING",)
     RETURN_NAMES = ("text_displayed",)
-    OUTPUT_NODE = True
-    def func(self, active, extra_pnginfo:dict, prompt, trigger=None):
+
+    @classmethod
+    def display(cls, thelist):
+        mappings = [Mapping.from_node_comma_meta(source).meta_to_node() for source in thelist]
+        return "\n".join(['metadata mapping:',]+mappings)
+    
+    @classmethod
+    def parse(cls, string):
+        return [Mapping.from_meta_to_node(mapper) for mapper in string.split("\n")[1:]]
+    
+    def func(self, active, configuration, extra_pnginfo:dict, prompt, trigger=None):
         if not active=="yes":
             return ("off", [], "turned off", None)
         set = {}
         key_missing = {}
         error_setting = {}
         updates = []
-        for target in get_config_metadata('metadata_sources'):
+        for mapping in self.parse(configuration):
             try:
-                key = ""
-                display_target_name = target.split(",")[0]
-                key, _, _, _ = NodeAddressing.parse_source(target)
-                value = Metadata.get(key)
+                value = Metadata.get(mapping.key)
                 if value is None:
-                    key_missing[target] = f"{key}"
+                    key_missing[mapping.meta_to_node()] = f"{mapping.key}"
                     continue
-                _, old_value = NodeAddressing.get_key_and_value(prompt, extra_pnginfo, target, widgets_only=True)
-                if isinstance(old_value, float):
-                    value = float(value)
-                elif isinstance(old_value, int):
-                    value = int(value)
-                else:
-                    value = str(value)
-                node_id, widget_name = NodeAddressing.set_value(prompt, extra_pnginfo, target, value)
-                set[target] = value
-                updates.append((str(node_id), widget_name, str(value)))
+                NodeAddressing.get_key_and_value(prompt, extra_pnginfo, mapping, widgets_only=True)
+                value = float(value) if isinstance(mapping.value, float) else int(value) if isinstance(mapping.value, int) else str(value)
+                NodeAddressing.set_value(prompt, extra_pnginfo, mapping, value)
+                set[mapping.node_comma_meta()] = value
+                updates.append((str(mapping.node_id), mapping.input_name, str(value)))
             except NodeAddressingException:
                 message = sys.exc_info()[1].args[0]
                 print(message)
-                error_setting[target] = f"  ** {key} {message}"
+                error_setting[mapping.node_comma_meta()] = f"  ** {mapping.key} {message}"
 
         text = json.dumps({"Set": set, "Keys not in metadata": key_missing, "Failed to set": error_setting}, indent=2)
         color = "#337733" if len(key_missing)==0 and len(error_setting)==0 else "#773333"
@@ -117,8 +125,9 @@ class AddMetadataToImage(BaseNode):
   
         for source in get_config_metadata('metadata_sources'):
             try:
-                key, value = NodeAddressing.get_key_and_value(prompt, extra_pnginfo, source)
-                Metadata.set(key, value)
+                mapping = Mapping.from_node_comma_meta(source)
+                NodeAddressing.get_key_and_value(prompt, extra_pnginfo, mapping)
+                Metadata.set(mapping.key, mapping.value)
             except NodeAddressingException:
                 print(sys.exc_info()[1].args[0])
                 issues = True

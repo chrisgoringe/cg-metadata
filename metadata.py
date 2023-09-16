@@ -3,7 +3,7 @@ from PIL import Image
 import json, sys
 from .cg_node_addressing import NodeAddressing
 
-MASTER_KEY = get_config_metadata('metadata_master_key')[0]
+MASTER_KEY = get_config_metadata('metadata_master_key', True)[0]
 
 class MetadataException(Exception):
     pass
