@@ -25,20 +25,40 @@ class Mapping:
         return cls._from_key_and_rest(key,rest)
     
     def meta_to_node(self):
-        return f"{self.key} -> {self.node_title}{self.skip_repr}.{self.input_name}"
+        return f"{self.key} <-> {self.node_title}{self.skip_repr}.{self.input_name}"
     
     @classmethod
     def from_meta_to_node(cls, string):
-        key, rest = (s.strip() for s in string.split('->'))
+        if not '<->' in string:
+            raise NodeAddressingException(f"Mapping failed to parse '{string}'")
+        key, rest = (s.strip() for s in string.split('<->'))
         return cls._from_key_and_rest(key,rest)
     
     @classmethod
     def _from_key_and_rest(cls, key, rest):
+        if '.' not in rest:
+            raise NodeAddressingException(f"Mapping failed to parse '{rest}'")
         rest, input_name = rest.split('.')
-        node_title, nth_node = rest.split("#") if "#" in node_title else (node_title,1)
+        node_title, nth_node = rest.split("#") if "#" in rest else (rest,1)
         skip_first_n_matches = int(nth_node) - 1
         return cls(key or input_name, node_title, input_name, skip_first_n_matches)
 
+    @classmethod
+    def parse_yaml(cls, string) -> list:
+        mappings = []
+        issues = ""
+        for mapper in string.split("\n")[1:]:
+            try:
+                if len(mapper.strip())>0:
+                    mappings.append(cls.from_meta_to_node(mapper))
+            except NodeAddressingException:
+                issues += f"\n{sys.exc_info()[1].args[0]}"
+        return mappings, issues
+    
+    @classmethod
+    def as_yaml(cls, maplist:list) -> str:
+        mappings = [Mapping.from_node_comma_meta(source).meta_to_node() for source in maplist]
+        return "\n".join(['metadata mapping:',]+mappings)
 
 class NodeAddressing:
     _outputs = None
@@ -51,7 +71,7 @@ class NodeAddressing:
                 if not skip:
                     return node
                 skip -= 1
-        raise NodeAddressingException(f"Couldn't find node {node_title}")
+        raise NodeAddressingException(f"Couldn't find node {mapping.node_title}")
 
     @classmethod
     def _find_input(cls, prompt, node, mapping:Mapping):
@@ -64,14 +84,14 @@ class NodeAddressing:
             raise NodeAddressingException(f"{node['id']} not in prompt - (is it bypassed?)")
         
     @classmethod
-    def _set_input(cls, prompt, node, mapping:Mapping, value):
+    def _set_input(cls, prompt, node, input_name, value):
         try:
-            input = prompt[str(node['id'])]['inputs'].get(mapping.input_name,None)
+            input = prompt[str(node['id'])]['inputs'].get(input_name,None)
             if input is None:
-                raise NodeAddressingException(f"Couldn't find input {mapping.input_name}")
+                raise NodeAddressingException(f"Couldn't find input {input_name}")
             if isinstance(input,list):
-                raise NodeAddressingException(f"Can't set an input, only a widget ({mapping.input_name})")
-            prompt[str(node['id'])]['inputs'][mapping.input_name] = value
+                raise NodeAddressingException(f"Can't set an input, only a widget ({input_name})")
+            prompt[str(node['id'])]['inputs'][input_name] = value
         except KeyError:
             raise NodeAddressingException(f"{node['id']} not in prompt - (is it bypassed?)")       
 

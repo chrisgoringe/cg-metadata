@@ -13,7 +13,6 @@ NODE_CLASS_MAPPINGS = {
                         "Load Image and Metadata" : LoadImageWithMetadata,
                         "Get Metadata String" : GetMetadataString,
                         "Set Metadata String" : SetMetadataString,
-                        "Show Metadata" : ShowMetadata,
                         "Send Metadata to Widgets": SendMetadataToWidgets,
                         "Set Widget Int" : SetWidgetInt,
                         "Set Widget Float" : SetWidgetFloat,

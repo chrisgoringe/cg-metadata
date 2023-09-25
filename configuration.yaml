@@ -19,11 +19,8 @@ metadata_sources:
 - KSampler.steps
 - KSampler.seed
 - KSampler.cfg
-- KSampler.sampler_name, sampler
+- KSampler.sampler_name
 - KSampler.scheduler
-- LoraLoader.lora_name, lora_name1
-- LoraLoader.strength_model, lora_strength_model1
-- LoraLoader.strength_clip, lora_strength_clip1
-- LoraLoader#2.lora_name, lora_name2
-- LoraLoader#2.strength_model, lora_strength_model2
-- LoraLoader#2.strength_clip, lora_strength_clip2
+- LoraLoader.lora_name
+- LoraLoader.strength_model
+- LoraLoader.strength_clip

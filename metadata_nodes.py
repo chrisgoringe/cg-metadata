@@ -8,6 +8,9 @@ from nodes import LoadImage
 from folder_paths import get_annotated_filepath
 import sys, json
 
+_bad  = "#773333"
+_good = "#114411"
+
 @ui_signal('display_text')
 class ShowMetadata(BaseNode, AlwaysRerun):
     CATEGORY = "metadata"
@@ -19,15 +22,15 @@ class LoadImageWithMetadata(AlwaysRerun, LoadImage):
     OUTPUT_NODE = True
     FUNCTION = "func"
     CATEGORY = "metadata"
-    RETURN_TYPES = LoadImage.RETURN_TYPES + ("STRING",)
-    RETURN_NAMES = ("image", "mask", "filename")
+    RETURN_TYPES = LoadImage.RETURN_TYPES + ("STRING","STRING",)
+    RETURN_NAMES = ("image", "mask", "filename", "metadata")
     def func(self, image):
         Metadata.set_debug()
         try:
             Metadata.add_dictionary_from_image(get_annotated_filepath(image))
         except MetadataException:
             print(sys.exc_info()[1].args[0])
-        return self.load_image(image) + (image,)
+        return self.load_image(image) + (image,Metadata.pretty())
     
 class GetMetadataString(BaseNode, AlwaysRerun):
     REQUIRED = { "key": ("STRING", {"default":"key"}) }
@@ -58,39 +61,31 @@ class SetMetadataString(BaseNode, AlwaysRerun):
         Metadata.set(key,value)
         return (value, key, )
 
-@ui_signal(['modify_other','display_text','set_title_color'])
+@ui_signal(['modify_other','set_title_color'])
 class SendMetadataToWidgets(BaseNode, AlwaysRerun):
     CONFIGURATION = get_config_metadata('metadata_sources', True)
     @classproperty
     def REQUIRED(cls):
         return {
+            "image": ("IMAGE", {}),
             "active": (["yes","no"],{}), 
-            "configuration": ("STRING", {"default":cls.display(get_config_metadata('metadata_sources', True)), "multiline":True})
+            "configuration": ("STRING", {"default":Mapping.as_yaml(get_config_metadata('metadata_sources', True)), "multiline":True})
         }
     
     HIDDEN = { "extra_pnginfo": "EXTRA_PNGINFO", "prompt": "PROMPT" }
-    OPTIONAL = { "trigger": ("*",{}) }
     CATEGORY = "metadata/widgets"
-    RETURN_TYPES = ("STRING",)
-    RETURN_NAMES = ("text_displayed",)
-
-    @classmethod
-    def display(cls, thelist):
-        mappings = [Mapping.from_node_comma_meta(source).meta_to_node() for source in thelist]
-        return "\n".join(['metadata mapping:',]+mappings)
+    RETURN_TYPES = ("IMAGE","STRING",)
+    RETURN_NAMES = ("image","results",)
     
-    @classmethod
-    def parse(cls, string):
-        return [Mapping.from_meta_to_node(mapper) for mapper in string.split("\n")[1:]]
-    
-    def func(self, active, configuration, extra_pnginfo:dict, prompt, trigger=None):
+    def func(self, image, active, configuration, extra_pnginfo:dict, prompt, trigger=None):
         if not active=="yes":
-            return ("off", [], "turned off", None)
+            return (image, "off", [], None)
         set = {}
         key_missing = {}
         error_setting = {}
         updates = []
-        for mapping in self.parse(configuration):
+        mappings, issues = Mapping.parse_yaml(configuration)
+        for mapping in mappings:
             try:
                 value = Metadata.get(mapping.key)
                 if value is None:
@@ -106,35 +101,42 @@ class SendMetadataToWidgets(BaseNode, AlwaysRerun):
                 print(message)
                 error_setting[mapping.node_comma_meta()] = f"  ** {mapping.key} {message}"
 
-        text = json.dumps({"Set": set, "Keys not in metadata": key_missing, "Failed to set": error_setting}, indent=2)
-        color = "#337733" if len(key_missing)==0 and len(error_setting)==0 else "#773333"
-        return(text, updates, text, color)
+        labels = [('Set', set), ('Key not in metadata', key_missing), ('Failed to set', error_setting), ('Parse error', issues)]
+        text = json.dumps({label:ob for label, ob in labels if ob}, indent=2)
+        color = _bad if key_missing or error_setting or issues else _good
+        return(image, text, updates, color)
 
+@ui_signal('set_title_color')
 class AddMetadataToImage(BaseNode):
-    REQUIRED = { "image": ("IMAGE", {}), }
+    CONFIGURATION = get_config_metadata('metadata_sources', True)
+    @classproperty
+    def REQUIRED(cls):
+        return {
+            "image": ("IMAGE", {}),
+            "configuration": ("STRING", {"default":Mapping.as_yaml(get_config_metadata('metadata_sources', True)), "multiline":True})
+        }
     HIDDEN = { "extra_pnginfo": "EXTRA_PNGINFO", "prompt": "PROMPT" }
-    RETURN_TYPES = ("IMAGE",)
+    RETURN_TYPES = ("IMAGE", "STRING", "STRING",)
+    RETURN_NAMES = ("image", "metadata", "problems",)
     OUTPUT_NODE = True
-    OPTIONAL = { "trigger": ("*",{}) }
     CATEGORY = "metadata"
 
-    def func(self, image, extra_pnginfo:dict, prompt, trigger=None):
+    def func(self, image, configuration, extra_pnginfo:dict, prompt):
         Metadata.set_debug()
         Metadata.debug_info(extra_pnginfo, prompt)
-        issues = False
-  
-        for source in get_config_metadata('metadata_sources'):
+
+        mappings, issues = Mapping.parse_yaml(configuration)
+        for mapping in mappings:
             try:
-                mapping = Mapping.from_node_comma_meta(source)
                 NodeAddressing.get_key_and_value(prompt, extra_pnginfo, mapping)
                 Metadata.set(mapping.key, mapping.value)
             except NodeAddressingException:
                 print(sys.exc_info()[1].args[0])
-                issues = True
+                issues = issues+f"\n{sys.exc_info()[1].args[0]}"
 
         if issues and not Metadata.debug:
             print(f"Consider turning debug on in Metadata Controller to help locate the missing data.")
 
         Metadata.store(extra_pnginfo)
 
-        return (image,)
+        return (image, Metadata.pretty(), issues, _bad if issues else _good)
