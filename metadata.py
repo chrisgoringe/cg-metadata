@@ -57,19 +57,22 @@ class Metadata():
         try:
             with Image.open(filepath) as img:
                 text = img.text
-                cls.loaded_prompt = json.loads(text.get('prompt',''))
-                cls.loaded_workflow = json.loads(text.get('workflow',''))
                 dict = json.loads(text[MASTER_KEY])
                 if cls.debug:
                     print(f"Metadata - loaded dictionary from {filepath}")
                 for key in dict:
                     cls.set(key, dict[key])
+                cls.loaded_prompt = json.loads(text.get('prompt',''))
+                cls.loaded_workflow = json.loads(text.get('workflow',''))
+                
         except AttributeError:
             raise MetadataException(f"Image loaded from {filepath} didn't have metadata")
         except KeyError:
            raise MetadataException(f"Image loaded from {filepath} had metadata which did not contain the master key {MASTER_KEY}")
         except FileNotFoundError:
             raise MetadataException(f"File not found at {filepath}")
+        except json.decoder.JSONDecodeError:
+            raise MetadataException(f"Image loaded from {filepath} didn't have metadata in json format")
 
     @classmethod
     def store(cls, extra_pnginfo):
